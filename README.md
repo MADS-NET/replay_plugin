@@ -6,6 +6,8 @@ This plugin allows to *replay* in MADS a CSV log file. It reads a CSV file and p
 
 The CSV header line is interpreted as a list of *keypaths*. For example, if a column is `IMU.accel.x`, the corresponding value gets into the JSON object `{"IMU": {"accel": {"x": 123.456}}}`. 
 
+An alternative keypaths syntax uses slashes as separators. For example, `IMU.accel[0].x` can also be written as `/IMU/accel/0/x` (notice the **mandatory leading slash**). Remember to update the dependencies by deleting the `build/_deps` folder and recompile.
+
 A MADS message is emitted for each line, at a frequency set by the agent period (from command line `-p` or from INI file)
 
 *Required MADS version: 1.3.5.*
