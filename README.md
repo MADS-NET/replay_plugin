@@ -4,9 +4,9 @@ This is a Source plugin for [MADS](https://github.com/MADS-NET/MADS).
 
 This plugin allows to *replay* in MADS a CSV log file. It reads a CSV file and produces a JSON message for each line.
 
-The CSV header line is interpreted as a list of *keypaths*. For example, if a column is `IMU.accel.x`, the corresponding value gets into the JSON object `{"IMU": {"accel": {"x": 123.456}}}`. 
+The CSV header line is interpreted as a list of *keypaths*. For example, if a column is `/IMU/0/accel/x` (notice the **mandatory leading slash**), the corresponding value gets into the JSON object `{"IMU": [{"accel": {"x": 123.456}}]}`. 
 
-An alternative keypaths syntax uses slashes as separators. For example, `IMU.accel[0].x` can also be written as `/IMU/accel/0/x` (notice the **mandatory leading slash**). Remember to update the dependencies by deleting the `build/_deps` folder and recompile.
+An alternative keypaths syntax uses slashes as separators. For example, `/IMU/0/accel/x` can also be written as `IMU[0].accel.x`. Note that this sytax is less efficient and mostly supported for compatibility reasons.
 
 A MADS message is emitted for each line, at a frequency set by the agent period (from command line `-p` or from INI file)
 
