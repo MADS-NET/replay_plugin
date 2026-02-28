@@ -10,8 +10,7 @@ An alternative keypaths syntax uses slashes as separators. For example, `/IMU/0/
 
 A MADS message is emitted for each line, at a frequency set by the agent period (from command line `-p` or from INI file)
 
-*Required MADS version: 1.3.5.*
-
+> This plugin has been updated for MADS v2
 
 ## Supported platforms
 
