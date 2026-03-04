@@ -1,5 +1,7 @@
 # Replay plugin for MADS
 
+> This plugin has been updated for MADS v2
+
 This is a Source plugin for [MADS](https://github.com/MADS-NET/MADS). 
 
 This plugin allows to *replay* in MADS a CSV log file. It reads a CSV file and produces a JSON message for each line.
@@ -10,7 +12,9 @@ An alternative keypaths syntax uses slashes as separators. For example, `/IMU/0/
 
 A MADS message is emitted for each line, at a frequency set by the agent period (from command line `-p` or from INI file)
 
-> This plugin has been updated for MADS v2
+If the CSV has a `timestamp` colum, thah column is used to calculate the *dynamic loop timestep*: the duration of each loop step is equal (as much as it can be possible on a non-realtime scheduler) to the corresponding time difference between the two lines in the CSV file.
+
+If there is no `timestamp` column, then the timing is according to the `period` INI parameter (or the `-p` command line option).
 
 ## Supported platforms
 
