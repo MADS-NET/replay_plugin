@@ -43,6 +43,7 @@ public:
   // Implement the actual functionality here
   return_type get_output(json &out, vector<unsigned char> *blob = nullptr) override {
     out.clear();
+    next_loop_duration = chrono::milliseconds(0);
 
     if (!_replay->has_next()) {
       _error = "No more data to read from CSV file";
@@ -154,17 +155,43 @@ int main(int argc, char const *argv[]) {
   SourcePlugin plugin;
   json output, params;
 
-  // Set example values to params
-  params["csv_file"] = "example.csv";
+  // Use a CSV with ISO timestamps and variable timesteps
+  params["csv_file"] = "example_timestamps.csv";
   params["loop"] = false;
 
-  // Set the parameters
   plugin.set_params(params);
 
-  // Process data
+  // Expected durations in ms (from example_timestamps.csv):
+  //   row 0:    0 ms (first row, no previous timestamp)
+  //   row 1:  500 ms
+  //   row 2: 2000 ms
+  //   row 3:  500 ms
+  //   row 4: 3000 ms
+  //   row 5:  100 ms
+  vector<long long> expected_ms = {0, 500, 2000, 500, 3000, 100};
+  size_t row = 0;
+  bool pass = true;
+
+  cout << "--- Timestamp-driven loop duration test ---" << endl;
   while (plugin.get_output(output) != return_type::critical) {
-    // Produce output
-    cout << "Output: " << output << endl;
+    long long dur = plugin.next_loop_duration.count();
+    cout << "Row " << row << ": " << output.dump()
+         << "  next_loop_duration=" << dur << " ms";
+
+    if (row < expected_ms.size()) {
+      long long exp = expected_ms[row];
+      if (dur == exp) {
+        cout << "  [PASS]";
+      } else {
+        cout << "  [FAIL expected " << exp << " ms]";
+        pass = false;
+      }
+    }
+    cout << endl;
+    ++row;
   }
-  return 0;
+  cout << "-------------------------------------------" << endl;
+  cout << "Total rows: " << row << endl;
+  cout << "Result: " << (pass ? "ALL PASSED" : "SOME FAILED") << endl;
+  return pass ? 0 : 1;
 }
