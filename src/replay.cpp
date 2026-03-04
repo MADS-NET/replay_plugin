@@ -19,6 +19,7 @@
 #include <replay.hpp>
 
 // other includes as needed here
+#include <ctime>
 
 // Define the name of the plugin
 #ifndef PLUGIN_NAME
@@ -56,10 +57,15 @@ public:
 
     if (!_agent_id.empty()) out["agent_id"] = _agent_id;
 
-    if (!out["timestamp"].is_null()) {
-      _error = "timestamp field name is not allowed, it will be removed";
+    if (out.contains("timestamp")) {
+      if (out["timestamp"].is_string()) {
+        long long ts = parse_iso_timestamp(out["timestamp"].get<string>());
+        if (ts >= 0 && _last_timestamp >= 0) {
+          next_loop_duration = chrono::milliseconds(ts - _last_timestamp);
+        }
+        if (ts >= 0) _last_timestamp = ts;
+      }
       out.erase("timestamp");
-      return return_type::warning;
     }
 
     return return_type::success;
@@ -77,6 +83,7 @@ public:
     _replay = make_unique<Replay>(_params["csv_file"]);
     _replay->set_loop(_params["loop"]);
     _replay->reset();
+    _last_timestamp = -1;
 
   }
 
@@ -94,7 +101,31 @@ public:
   };
 
 private:
-  unique_ptr<Replay> _replay; // alternative using unique_ptr
+  unique_ptr<Replay> _replay;
+  long long _last_timestamp = -1;
+
+  long long parse_iso_timestamp(const string &s) {
+    struct tm tm = {};
+    int n = sscanf(s.c_str(), "%d-%d-%dT%d:%d:%d",
+                   &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
+                   &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+    if (n < 6) return -1;
+    int ms = 0;
+    auto dot = s.find('.');
+    if (dot != string::npos) {
+      string frac;
+      for (size_t i = dot + 1; i < s.size() && isdigit(s[i]) && frac.size() < 3; ++i)
+        frac += s[i];
+      while (frac.size() < 3) frac += '0';
+      ms = stoi(frac);
+    }
+    tm.tm_year -= 1900;
+    tm.tm_mon -= 1;
+    tm.tm_isdst = -1; // let mktime determine DST; timezone offset cancels in diff
+    time_t t = mktime(&tm);
+    if (t == (time_t)-1) return -1;
+    return static_cast<long long>(t) * 1000 + ms;
+  }
 };
 
 
